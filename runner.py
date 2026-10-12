@@ -41,6 +41,9 @@ LIMITS = {"shoulder_pan": (-110, 110), "shoulder_lift": (-110, 110),
 # sensitive to it, so each practice episode is returned to it first
 HOME = {"shoulder_pan": -6.0, "shoulder_lift": -104.0, "elbow_flex": 98.0,
         "wrist_flex": -18.0, "wrist_roll": -89.0, "gripper": 40.0}
+
+HOME_MAX_DEG_PER_S = 25.0     # hard ceiling on homing speed, any joint
+
  
 TASKS = {
     "place":    "pick up the cube and place it in the tray",
@@ -103,7 +106,28 @@ class RandomScheduler:
         pass
  
  
-SCHEDULERS = {"feasible": FeasibleScheduler, "random": RandomScheduler}
+class RetryLimitScheduler(FeasibleScheduler):
+    """Feasible rule, plus a fixed retry limit: after N consecutive failures,
+    stop and ask a human to reposition the cube (Leave No Trace's hard reset,
+    with N fixed by hand). Condition B in the paper."""
+    name = "retry"
+
+    def __init__(self, n=2):
+        self.n, self.streak, self.help = n, 0, False
+
+    def feasible(self, ws):
+        return [] if self.help else super().feasible(ws)
+
+    def update(self, ws, task, outcome):
+        self.streak = 0 if outcome["success"] else self.streak + 1
+        self.help = self.streak >= self.n
+
+    def helped(self):
+        self.streak, self.help = 0, False
+
+
+SCHEDULERS = {"feasible": FeasibleScheduler, "random": RandomScheduler,
+              "retry": RetryLimitScheduler}
  
  
 # --------------------------------------------------------------------------
@@ -166,21 +190,30 @@ def to_tensor(frame, dev):
  
  
 def go_home(arm, args):
-    """Ease the arm back to the demonstration start pose, gripper open.
- 
-    Each policy was trained from this pose. Starting an episode wherever the
-    previous one happened to end puts the policy off-distribution before it
-    has done anything.
+    """Ease the arm back to HOME over a fixed duration with a smooth ramp.
+
+    Time-based rather than step-based: the move always takes at least
+    --home-seconds, however far away the arm is, so no joint ever moves fast
+    enough to brown out the servo bus.
     """
-    cur = {m: float(arm.get_observation()[f"{m}.pos"]) for m in JOINTS}
-    for _ in range(args.home_steps):
-        if all(abs(HOME[m] - cur[m]) < 1.0 for m in JOINTS):
-            break
-        cur = {m: cur[m] + float(np.clip(HOME[m] - cur[m],
-                                         -args.home_delta, args.home_delta))
-               for m in JOINTS}
-        arm.send_action({f"{m}.pos": cur[m] for m in JOINTS})
-        time.sleep(1 / 30)
+    start = {m: float(arm.get_observation()[f"{m}.pos"]) for m in JOINTS}
+    dist = max(abs(HOME[m] - start[m]) for m in JOINTS)
+    if dist < 1.0:
+        return
+
+    # duration scales with distance but never below the floor;
+    # at most HOME_MAX_DEG_PER_S in any joint
+    duration = max(args.home_seconds, dist / HOME_MAX_DEG_PER_S)
+    rate = 20                                   # Hz — gentler on the bus than 30
+    n = int(duration * rate)
+
+    for i in range(1, n + 1):
+        t = i / n
+        s = 0.5 - 0.5 * np.cos(np.pi * t)       # cosine ease: slow start, slow end
+        target = {m: start[m] + s * (HOME[m] - start[m]) for m in JOINTS}
+        arm.send_action({f"{m}.pos": target[m] for m in JOINTS})
+        time.sleep(1.0 / rate)
+
     arm.send_action({f"{m}.pos": HOME[m] for m in JOINTS})
     time.sleep(0.5)
  
@@ -277,6 +310,8 @@ def main():
     ap.add_argument("--cams", type=int, nargs=2, default=[0, 1],
                     help="wrist index, scene index")
     ap.add_argument("--scheduler", default="feasible", choices=list(SCHEDULERS))
+    ap.add_argument("--max-retries", type=int, default=2,
+                    help="retry scheduler: consecutive failures before asking for help")
     ap.add_argument("--go", action="store_true", help="actually move the arm")
     ap.add_argument("--minutes", type=float, default=0, help="0 = until Ctrl+C")
     ap.add_argument("--max-steps", type=int, default=800)
@@ -285,10 +320,8 @@ def main():
     ap.add_argument("--lost-timeout", type=float, default=25.0)
     ap.add_argument("--settle-frames", type=int, default=15)
     ap.add_argument("--settle-px", type=float, default=6.0)
-    ap.add_argument("--home-steps", type=int, default=90,
-                    help="max steps to ease back to the home pose between episodes")
-    ap.add_argument("--home-delta", type=float, default=1.5,
-                    help="degrees per step while returning home (lower = slower)")    
+    ap.add_argument("--home-seconds", type=float, default=4.0,
+                    help="minimum duration of the return-to-home move")  
     ap.add_argument("--log", default="runs/session.csv")
     args = ap.parse_args()
  
@@ -302,7 +335,8 @@ def main():
         print(f"  VRAM: {torch.cuda.memory_allocated() / 1e9:.2f} GB")
  
     det = CubeDetector()
-    sched = SCHEDULERS[args.scheduler]()
+    sched = (RetryLimitScheduler(args.max_retries) if args.scheduler == "retry"
+             else SCHEDULERS[args.scheduler]())
  
     caps = [cv2.VideoCapture(i, cv2.CAP_DSHOW) for i in args.cams]
     for c in caps:
@@ -346,13 +380,16 @@ def main():
  
             if ws is None or not sched.feasible(ws):
                 ledger.interventions += 1
-                why = ws.region if ws else "no frame"
+                asked = getattr(sched, "help", False)
+                why = "retry limit" if asked else (ws.region if ws else "no frame")
                 hint = ("landed outside the work region"
                         if why == "table_edge" else "not usable")
+                if asked:
+                    hint = "move it to a NEW spot in the same region, then press any key"
                 print(f"\n[INTERVENTION #{ledger.interventions}] cube {why} — "
                       f"{hint}. Move it inside the taped square or the tray.")
                 log.writerow([ledger.episodes, round(ledger.elapsed_min, 2),
-                              sched.name, "", ws.region if ws else "", "", "",
+                              sched.name, "retry_limit" if asked else "", ws.region if ws else "", "", "",
                               "", "", 1, ledger.successes, ledger.interventions])
                 logf.flush()
  
@@ -366,7 +403,7 @@ def main():
                                     (10, 90), cv2.FONT_HERSHEY_SIMPLEX,
                                     0.8, (0, 0, 255), 2)
                         cv2.imshow("session", d2)
-                        if ws2.confident and ws2.region in VALID_REGIONS:
+                        if not asked and ws2.confident and ws2.region in VALID_REGIONS:
                             stable += 1
                             if stable > 45:
                                 print("  scene recovered, resuming")
@@ -378,6 +415,8 @@ def main():
                         raise KeyboardInterrupt
                     if k != -1:
                         break
+                if asked:
+                    sched.helped()
                 continue
  
             task = sched.select(ws, history)
