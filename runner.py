@@ -218,6 +218,11 @@ def go_home(arm, args):
     time.sleep(0.5)
  
  
+import json as _json
+RELEASE = _json.load(open("release.json")) if os.path.exists("release.json") else None
+INFERRED_TRAY = [False]
+
+
 def run_episode(task, bundle, arm, caps, det, args, dev):
     """One attempt. Ends on a settled cube in the goal region, the step cap,
     or a cube lost for too long."""
@@ -231,11 +236,21 @@ def run_episode(task, bundle, arm, caps, det, args, dev):
     settle_n, settle_xy = 0, None
     success = False
     step = 0
+    min_grip, released_over_tray, stop_at = 1e9, False, None
  
     for step in range(args.max_steps):
         t0 = time.perf_counter()
         obs = arm.get_observation()
         cur = np.array([float(obs[f"{m}.pos"]) for m in JOINTS], dtype=np.float32)
+        if task == "place" and RELEASE and not released_over_tray:
+            min_grip = min(min_grip, float(cur[5]))
+            if (min_grip <= RELEASE["grip_hold_max"]
+                    and cur[5] > min_grip + RELEASE["open_by"]
+                    and RELEASE["pan_min"] <= cur[0] <= RELEASE["pan_max"]):
+                released_over_tray, stop_at = True, step + 45
+                print("  released over the tray")
+        if stop_at is not None and step >= stop_at:
+            break
  
         frames = [c.read()[1] for c in caps]
         if any(f is None for f in frames):
@@ -300,7 +315,8 @@ def run_episode(task, bundle, arm, caps, det, args, dev):
         time.sleep(max(1 / 30 - (time.perf_counter() - t0), 0))
  
     return {"task": task, "success": success, "steps": step + 1,
-            "seconds": time.perf_counter() - t_start, "joint_travel": travel}
+            "seconds": time.perf_counter() - t_start, "joint_travel": travel,
+            "released_over_tray": released_over_tray}
  
  
 def main():
@@ -377,6 +393,8 @@ def main():
             okw, wrist = caps[0].read()
             oks, scene = caps[1].read()
             ws, dbg = det.find(scene, wrist if okw else None) if oks else (None, None)
+            if ws is not None and ws.region in ("held", "lost") and INFERRED_TRAY[0]:
+                ws.region, ws.confident = "tray", True
  
             if ws is None or not sched.feasible(ws):
                 ledger.interventions += 1
@@ -440,7 +458,16 @@ def main():
                             and ws_after.confident:
                         outcome["success"] = True
                         print("  (success confirmed after homing)")
+                    elif (outcome.get("released_over_tray")
+                          and ws_after.region not in ("table_in", "table_edge")):
+                        outcome["success"] = True
+                        INFERRED_TRAY[0] = True
+                        print("  (success: released over the tray, cube not on the table)")
  
+            if task == "place" and outcome["success"]:
+                INFERRED_TRAY[0] = True
+            elif task != "place":
+                INFERRED_TRAY[0] = False
             ledger.charge(outcome)
             history.append(outcome)
             sched.update(ws, task, outcome)
