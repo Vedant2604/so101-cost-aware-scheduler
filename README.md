@@ -19,7 +19,7 @@ Two learned policies take turns and reset each other, so nobody has to:
 
 ## Built, not bought
 
-<!-- missing media: ![The 3D-printed parts](media/parts.jpg)<br>*Every part of the arm, fresh off our printer.* -->
+![The 3D-printed parts](media/parts.jpg)<br>*Every part of the arm, fresh off our printer.*
 
 SO-101 arm · 6 hobby servos · 2 webcams (wrist + scene) · a PS5 controller for demos · about **$200** in total. Policies are [ACT](https://arxiv.org/abs/2304.13705), trained on a rented GPU in about 2 hours each.
 
@@ -43,7 +43,6 @@ flowchart LR
 
 ## Lessons learned the hard way
 
-- 🧪 **Simulation flopped.** Reset-free learning in MuJoCo never scored once, so there was nothing to learn from. We switched to human demos.
 - 📉 **The loss curve lied.** Validation loss got worse while the real robot got better. Trust the robot.
 - 🎯 **Density beats quantity.** 43 demos packed into a small square beat 51 spread across the table: **10/10** vs 8/20.
 - 🏠 **Robots like routine.** The policies only work from their starting pose, so the arm goes home before every attempt.
@@ -65,19 +64,10 @@ flowchart LR
 
 *Fine print: a small experiment (3 vs 2 sessions, not statistically significant), and the wrist came loose and was re-attached halfway. Everything is in `runs/`. Run `python analyze.py` to check our maths.*
 
-## Try it
-
-```bash
-python record_demo.py --task place4 --cams 1 0      # record demos with the gamepad
-python convert_demos.py place4 --repo YOUR_HF_USER/so101_place4
-lerobot-train --dataset.repo_id=YOUR_HF_USER/so101_place4 --policy.type=act --steps=50000
-python runner.py --place <place_policy> --retrieve <retrieve_policy> \
-  --cams 1 0 --scheduler feasible --go --minutes 10 --log runs/my_session.csv
-```
-
-Leave out `--go` for a dry run that doesn't move the arm.
+## Models and data
 
 **Models:** [`act-so101-place4`](https://huggingface.co/Ved4nt/act-so101-place4) · [`act-so101-retrieve-retry`](https://huggingface.co/Ved4nt/act-so101-retrieve-retry)
+
 **Data:** [`so101_pick3`](https://huggingface.co/datasets/Ved4nt/so101_pick3) · [`so101_place_retry`](https://huggingface.co/datasets/Ved4nt/so101_place_retry) · [`so101_retrieve_retry`](https://huggingface.co/datasets/Ved4nt/so101_retrieve_retry)
 
 The full story, including everything that broke, is in [`LOG.md`](LOG.md).
