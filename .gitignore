@@ -18,3 +18,4 @@ smolvla_base/
 *.mp4
 runner_before_*.py
 __pycache__/
+media_src/
