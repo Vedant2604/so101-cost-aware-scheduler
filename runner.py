@@ -142,6 +142,8 @@ class Ledger:
         self.joint_travel = 0.0
         self.per_task = {t: [0, 0] for t in TASKS}      # task -> [attempts, wins]
         self.t0 = time.time()
+        self.paused = 0.0      # seconds the clock was stopped for a human
+        self.human_s = 0.0
  
     def charge(self, o):
         self.episodes += 1
@@ -153,7 +155,7 @@ class Ledger:
  
     @property
     def elapsed_min(self):
-        return (time.time() - self.t0) / 60.0
+        return (time.time() - self.t0 - self.paused) / 60.0
  
     def summary(self):
         rate = self.successes / max(self.episodes, 1)
@@ -162,7 +164,8 @@ class Ledger:
             f"{t}:{w}/{a}" for t, (a, w) in self.per_task.items() if a)
         return (f"{self.episodes} eps | {self.successes} ok ({rate:.0%}) | "
                 f"{by_task} | {self.interventions} int ({per_hr:.1f}/hr) | "
-                f"{self.elapsed_min:.1f} min")
+                f"{self.elapsed_min:.1f} min robot | "
+                f"{self.human_s / 60:.1f} min human")
  
  
 # --------------------------------------------------------------------------
@@ -403,7 +406,7 @@ def main():
                 hint = ("landed outside the work region"
                         if why == "table_edge" else "not usable")
                 if asked:
-                    hint = "move it to a NEW spot in the same region, then press any key"
+                    hint = "move it to a NEW spot in the same region, then CLICK the camera window and press any key"
                 print(f"\n[INTERVENTION #{ledger.interventions}] cube {why} — "
                       f"{hint}. Move it inside the taped square or the tray.")
                 log.writerow([ledger.episodes, round(ledger.elapsed_min, 2),
@@ -411,6 +414,7 @@ def main():
                               "", "", 1, ledger.successes, ledger.interventions])
                 logf.flush()
  
+                _w0 = time.time()
                 stable = 0
                 while True:
                     okw2, w2 = caps[0].read()
@@ -433,6 +437,15 @@ def main():
                         raise KeyboardInterrupt
                     if k != -1:
                         break
+                waited = time.time() - _w0
+                ledger.paused += waited
+                ledger.human_s += waited
+                print(f"  human took {waited:.0f}s (clock paused)")
+                log.writerow([ledger.episodes, round(ledger.elapsed_min, 2),
+                              sched.name, "human_wait", "", "", "",
+                              round(waited, 1), "", 0, ledger.successes,
+                              ledger.interventions])
+                logf.flush()
                 if asked:
                     sched.helped()
                 continue

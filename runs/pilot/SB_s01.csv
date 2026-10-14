@@ -1,0 +1,9 @@
+episode,wallclock_min,scheduler,task,start_region,success,steps,seconds,joint_travel,intervention,cum_successes,cum_interventions
+1,0.6,retry,place,table_in,1,545,33.2,6981.3,0,1,0
+2,1.21,retry,retrieve,tray,1,441,27.7,5547.6,0,2,0
+3,1.74,retry,place,table_in,0,256,15.4,3392.1,0,2,0
+4,2.36,retry,place,table_in,0,452,27.3,5771.4,0,2,0
+4,2.41,retry,retry_limit,table_in,,,,,1,2,1
+5,8.88,retry,place,table_in,0,800,48.3,10211.4,0,2,1
+5,8.93,retry,,lost,,,,,1,2,2
+6,10.09,retry,retrieve,tray,0,800,49.3,9362.6,0,2,2

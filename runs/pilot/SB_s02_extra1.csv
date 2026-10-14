@@ -1,0 +1,2 @@
+episode,wallclock_min,scheduler,task,start_region,success,steps,seconds,joint_travel,intervention,cum_successes,cum_interventions
+1,0.53,retry,place,table_in,1,379,23.2,5008.8,0,1,0

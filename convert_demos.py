@@ -25,6 +25,8 @@ TASK_STRINGS = {
     "place4":     "pick up the cube and place it in the tray",
     "reposition": "pick up the cube and place it somewhere else on the table",
     "retrieve": "take the cube out of the tray and place it on the table",
+    "place_retry":    "pick up the cube and place it in the tray",
+    "retrieve_retry": "take the cube out of the tray and place it on the table",
 }
 
 

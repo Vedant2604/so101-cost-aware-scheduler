@@ -11,3 +11,10 @@ MUJOCO_LOG.TXT
 echo demos/ 
 echo outputs/ 
 echo *.zip 
+demos/
+outputs/
+smolvla_base/
+*.zip
+*.mp4
+runner_before_*.py
+__pycache__/
