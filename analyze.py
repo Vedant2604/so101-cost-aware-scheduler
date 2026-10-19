@@ -97,3 +97,16 @@ if len(summary) == 2:
               round(mannwhitneyu(fa, fb).pvalue, 3))
     except ImportError:
         print("\n(pip install scipy for the significance tests)")
+
+# do failures cluster? success of a place that directly follows a failed place
+after = [0, 0]
+for c in "AB":
+    for p in sorted(glob.glob(os.path.join("runs", f"S{c}_s*.csv"))):
+        seq = [r for r in csv.DictReader(open(p, newline=""))
+               if r["task"] in ("place", "retrieve") and float(r["seconds"]) >= MIN_S]
+        for a, b in zip(seq, seq[1:]):
+            if a["task"] == b["task"] == "place" and a["success"] != "1":
+                after[0] += b["success"] == "1"; after[1] += 1
+if after[1]:
+    print(f"\nplace right after a failed place: {after[0]}/{after[1]} = "
+          f"{after[0]/after[1]:.0%} succeeded")

@@ -1,6 +1,6 @@
 # Practice is not free 🤖
 
-A $200 robot arm we printed ourselves, teaching itself to keep busy without us, and keeping receipts for every attempt.
+A low-cost robot arm we printed ourselves, teaching itself to keep busy without us, and keeping receipts for every attempt.
 
 ![The autonomous loop](media/loop.gif)<br>*Unattended and sped up: place, go home, look, retrieve, repeat. Spot the failure and the moment a human steps in.*
 
@@ -21,7 +21,7 @@ Two learned policies take turns and reset each other, so nobody has to:
 
 ![The 3D-printed parts](media/parts.jpg)<br>*Every part of the arm, fresh off our printer.*
 
-SO-101 arm · 6 hobby servos · 2 webcams (wrist + scene) · a PS5 controller for demos · about **$200** in total. Policies are [ACT](https://arxiv.org/abs/2304.13705), trained on a rented GPU in about 2 hours each.
+SO-101 arm · 6 hobby servos · 2 webcams (wrist + scene) · a PS5 controller for demos. Policies are [ACT](https://arxiv.org/abs/2304.13705), trained on a rented GPU in about 2 hours each.
 
 ## How it works
 
@@ -43,7 +43,7 @@ flowchart LR
 
 ## Lessons learned the hard way
 
-- 📉 **The loss curve lied.** Validation loss got worse while the real robot got better. Trust the robot.
+- 📉 **Narrow task, train longer.** Validation loss went up while the real robot got better. Same cube, same spots: fitting our exact setup closely is the whole point, so judge checkpoints on the robot.
 - 🎯 **Density beats quantity.** 43 demos packed into a small square beat 51 spread across the table: **10/10** vs 8/20.
 - 🏠 **Robots like routine.** The policies only work from their starting pose, so the arm goes home before every attempt.
 - 🙃 **Be consistent.** Correction demos that skipped one small move (lifting after the drop) made the place policy *worse*.
@@ -70,8 +70,8 @@ flowchart LR
 
 **Data:** [`so101_pick3`](https://huggingface.co/datasets/Ved4nt/so101_pick3) · [`so101_place_retry`](https://huggingface.co/datasets/Ved4nt/so101_place_retry) · [`so101_retrieve_retry`](https://huggingface.co/datasets/Ved4nt/so101_retrieve_retry)
 
-The full story, including everything that broke, is in [`LOG.md`](LOG.md).
+The paper's LaTeX source is in [`paper/`](paper/). The full story, including everything that broke, is in [`LOG.md`](LOG.md).
 
 ---
 
-Built on [LeRobot](https://github.com/huggingface/lerobot), [SO-ARM100/101](https://github.com/TheRobotStudio/SO-ARM100) and [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie).
+Built on [LeRobot](https://github.com/huggingface/lerobot) and [SO-ARM100/101](https://github.com/TheRobotStudio/SO-ARM100).
