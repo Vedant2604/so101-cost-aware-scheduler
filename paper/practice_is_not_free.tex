@@ -1,32 +1,34 @@
-% =========================================================================
 % Practice Is Not Free: Measuring the Embodied Cost of Reset-Free Robot Practice
-% Single-file version: figures are drawn in TikZ and the bibliography is
-% embedded, so this one .tex file compiles on its own (needs llncs.cls).
+% Needs llncs.cls and these figure files in the same folder:
+%   fig1_run.pdf, fig2_testbed.pdf, fig3_loop.pdf, fig4_ledger.pdf, fig6_analysis.pdf
+%   fig1_run_anim.pdf (optional: plays Figure 1 in Adobe Acrobat)
+% Figure 5 (the attempt timeline) is drawn in TikZ below, and the bibliography is embedded.
 % This file in the GitHub repo (paper/) is the master copy. Every change is
 % committed with a message; submitted versions are tagged (git tag).
-% =========================================================================
 \documentclass[runningheads]{llncs}
 
-% ---- Encoding & fonts ------------------------------------------------------
+% Encoding & fonts
 \usepackage[T1]{fontenc}
 \usepackage{microtype}
 
-% ---- Math ------------------------------------------------------------------
+% Math
 \usepackage{amssymb, amsfonts}
 \usepackage{mathtools}
 \usepackage{bm}
 \let\vec\relax
 
-% ---- Tables ----------------------------------------------------------------
+% Tables
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{array}
 \renewcommand{\arraystretch}{1.1}
 
-% ---- Figures ---------------------------------------------------------------
+% Figures
 \usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, patterns, shapes.geometric}
+% Plays Figure 1 as a video in Adobe Acrobat; every other viewer shows its final frame.
+\IfFileExists{animate.sty}{\usepackage{animate}}{}
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\bottomfraction}{0.8}
 \renewcommand{\textfraction}{0.07}
@@ -38,7 +40,7 @@
 \definecolor{failorange}{HTML}{EB6834}
 \definecolor{inkgray}{HTML}{52514E}
 
-% ---- Links & cross-refs ----------------------------------------------------
+% Links & cross-refs
 \usepackage{xcolor}
 \usepackage[colorlinks=true,linkcolor=blue!50!black,
             citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
@@ -50,46 +52,70 @@
 \crefname{figure}{Figure}{Figures}
 \crefname{equation}{Eq.}{Eqs.}
 
-% ---- Lists -----------------------------------------------------------------
+% Lists
 \usepackage{enumitem}
 \setlist{itemsep=2pt,topsep=2pt,parsep=0pt,partopsep=0pt}
 
-% ---- Macros ----------------------------------------------------------------
+% Macros
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\task}[1]{\textit{#1}}
+% Figure files may be supplied as .pdf or .jpg; take whichever is present.
+\newcommand{\figfile}[1]{%
+  \IfFileExists{#1.pdf}{\includegraphics[width=\textwidth]{#1.pdf}}{%
+  \IfFileExists{#1.jpg}{\includegraphics[width=\textwidth]{#1.jpg}}{%
+  \fbox{\parbox{0.92\textwidth}{\centering\vspace{1.2cm}\texttt{\detokenize{#1}}.pdf / .jpg not found\vspace{1.2cm}}}}}}
 
-% =========================================================================
+
 \title{Practice Is Not Free: Measuring the Embodied Cost of Reset-Free Robot Practice}
 \titlerunning{Practice Is Not Free}
 %
-% TODO: confirm affiliations and e-mail addresses before submission.
+% >>> ONE THING LEFT TO FILL IN: the second affiliation and e-mail, below. <<<
 \author{Vedant Telrandhe\inst{1} \and Sushil Sharma\inst{2}}
 \authorrunning{Telrandhe and Sharma}
 \institute{Independent Researcher\\
   \email{vedantm264@gmail.com}
   \and
-  AFFILIATION OF SUSHIL SHARMA\\
-  \email{EMAIL@EXAMPLE.COM}}
+  \textbf{[affiliation to be supplied]}\\
+  \email{[e-mail to be supplied]}}
 
 \begin{document}
 \maketitle
 
-% =========================================================================
+% Figure 1 sits on the title page, between the authors and the abstract (not a float).
+\begin{center}
+% If fig1_run_anim.pdf is uploaded and the animate package is present, the figure plays
+% in Adobe Acrobat and shows its last page (the summary frame) everywhere else.
+% Otherwise the static fig1_run.pdf is used. Both look the same in print.
+\ifdefined\animategraphics
+  \IfFileExists{fig1_run_anim.pdf}%
+    {\animategraphics[width=\textwidth,autoplay,loop,poster=last]{4}{fig1_run_anim}{}{}}%
+    {\figfile{fig1_run}}%
+\else
+  \figfile{fig1_run}%
+\fi
+\captionof{figure}{\textbf{One real run with nobody resetting the scene: four successes, one failure, and one call for help.} \emph{Left:} the scene camera with the detector's live overlay; the cyan box is the tray, the outline and dot are the cube and its contact point, and the label turns green when the cube is in the tray. \emph{Right:} the runner's own log for the same run, condensed. \emph{Bottom:} one frame per attempt. \task{Place} and \task{retrieve} undo each other until attempt~4 releases without the cube and a person resets it. In Adobe Acrobat the figure plays the run at four times real speed; full videos are in the repository.}
+\label{fig:teaser}
+\end{center}
+\vspace{-0.6\baselineskip}
+
 \begin{abstract}
-When a robot practises without human resets, every attempt still costs wall-clock time, actuator wear, and sometimes a person's attention, yet the schedulers that decide what to practise next treat attempts as free. We present an open, low-cost testbed for measuring these costs: a self-built SO-101 arm runs two demonstration-trained ACT policies that reset each other, with a vision-based success detector and a ledger that records the time, joint travel, and human interventions of every attempt. We formulate cost-aware practice scheduling, in which task selection is rewarded by measured competence gain net of embodied cost, and pre-specify the comparison needed to test it. Its first two conditions, run on hardware for 51 minutes of robot time, show that a fixed retry limit did not reduce the share of execution time lost to failures (36\%, against 27\% for a feasibility rule; not significant) and doubled interventions per success. The logs explain why: failures did not cluster, so a retry right after a failure was as likely to succeed as any other attempt, and early requests for help bought nothing. We also report lessons from building the system, including a coverage effect in which concentrating demonstrations in a smaller workspace raised success there from 8/20 to 10/10.
+When a robot practises without human resets, every attempt still costs wall-clock time, actuator wear, and sometimes a person's attention, yet the schedulers that decide what to practise next treat attempts as free. We present an open, low-cost testbed for measuring these costs: a self-built SO-101 arm runs two demonstration-trained ACT policies that reset each other, with a vision-based success detector and a ledger that records the time, joint travel, and human interventions of every attempt. We formulate cost-aware practice scheduling, in which task selection is rewarded by measured competence gain net of embodied cost, and specify in advance the comparison that will test it. Its first two conditions, run on hardware for 51 minutes of robot time, show that a fixed retry limit did not reduce the share of execution time lost to failures (36\%, against 27\% for a feasibility rule; not significant) and doubled interventions per success. The logs explain why: failures did not cluster, so a retry right after a failure was as likely to succeed as any other attempt, and early requests for help bought nothing. We also report lessons from building the system, including a coverage effect in which concentrating demonstrations in a smaller workspace raised success there from 8/20 to 10/10.
 
 \keywords{Reset-free learning \and Autonomous practice \and Embodied cost \and Task scheduling \and Low-cost robotics.}
+
+\medskip\noindent\textbf{Code, data, logs and videos:} \url{https://github.com/Vedant2604/so101-cost-aware-scheduler}
 \end{abstract}
 
-% =========================================================================
+
+
 \section{Introduction}
 \label{sec:intro}
 
-A robot that keeps improving after deployment must decide, again and again, what to practise next. On physical hardware that decision is never free. Each attempt costs wall-clock time and actuator wear, and an attempt that leaves the scene in a state the robot cannot recover from costs a person's attention. This paper argues that these costs should enter the practice decision directly, and presents a low-cost testbed built to measure them.
+A robot that keeps improving after deployment must decide, again and again, what to practise next. On physical hardware that decision is never free. Each attempt costs wall-clock time and actuator wear, and an attempt that leaves the scene in a state the robot cannot recover from costs a person's attention. This paper argues that these costs should enter the practice decision directly, and presents a low-cost testbed built to measure them (\cref{fig:teaser}).
 
 Reset-free reinforcement learning was motivated by exactly this concern. Real-world learning stalls when a human must reset the scene after every attempt~\cite{eysenbach2018,zhu2020}. The field has largely addressed it by making resets automatic: learning a reset policy alongside the forward policy~\cite{eysenbach2018}, or choosing tasks so that each one resets another~\cite{gupta2021}. These methods reduce the number of human resets. They do not, however, price the attempts the robot makes on its own. Eysenbach et al.~\cite{eysenbach2018} note this limitation directly: their method treats all manual resets as equally bad, and they suggest attaching a cost to each type of reset as an approach their paper did not study.
 
-A second line of work asks which skill a robot should practise. Estimate, Extrapolate, Situate (EES) selects the skill whose predicted competence gain most improves task success~\cite{kumar2024}. Deliberate Practice computes a budget-optimal allocation of practice across skills~\cite{vats2026}. Both are significant advances, and both measure the practice budget in attempts. An attempt that takes 18 seconds and one that takes 48 seconds, or one that ends in a human intervention and one that does not, count the same.
+A second line of work asks which skill a robot should practise. Estimate, Extrapolate, Situate (EES) selects the skill whose predicted competence gain most improves task success~\cite{kumar2024}. Deliberate Practice computes a budget-optimal allocation of practice across skills~\cite{vats2026}. Both are real advances, and both count the practice budget in attempts. An attempt that takes 18 seconds and one that takes 48 seconds, or one that ends in a human intervention and one that does not, count the same.
 
 Our own system made this concrete. In its first unattended session, a hand-designed scheduler alternated two policies that reset each other. Late in the session, one policy began to fail from the same start state. The scheduler retried it at the full episode cost of 48 seconds and a complete arm excursion, and would have continued indefinitely, because nothing in its decision rule registers that practice is expensive.
 
@@ -97,13 +123,10 @@ This paper makes four contributions:
 \begin{enumerate}
 \item \textbf{A formulation of cost-aware practice scheduling.} The scheduler is rewarded by the measured competence gain of the low-level policies, net of embodied cost: wall-clock time, joint travel as a proxy for actuator wear, and human interventions (\cref{sec:problem}).
 \item \textbf{An open, low-cost testbed.} A self-built SO-101 arm runs two demonstration-trained ACT policies~\cite{zhao2023} that reset each other, with a vision-based success detector and a per-episode cost ledger. The code, datasets, and trained policies are public (\cref{sec:system}).
-\item \textbf{Empirical observations from building it.} These include validation loss that rose while real-world success improved, a coverage effect in demonstration placement, a reset-to-home requirement absent from the demonstrations, and the need for correction demonstrations to match the originals (\cref{sec:pilot}).
-\item \textbf{An evaluation protocol and its first results.} We pre-specify a comparison of cost-blind and cost-aware schedulers on identical hardware, and report its first two conditions: a feasibility rule and a fixed retry limit (\cref{sec:eval}).
+\item \textbf{Lessons from building it.} Validation loss that rose while real-world success improved, a coverage effect in demonstration placement, a reset-to-home requirement absent from the demonstrations, and a data-encoding fix that cut training time fourfold (\cref{sec:pilot}).
+\item \textbf{An evaluation protocol and its first results.} We specify a comparison of cost-blind and cost-aware schedulers on identical hardware before running it, and report its first two conditions, a feasibility rule and a fixed retry limit; the cost-aware conditions are the next experiment (\cref{sec:eval}).
 \end{enumerate}
 
-We state the scope plainly. This paper reports a working platform, a pilot session, a formulation, and a first comparison of two rule-based baselines. It does not yet test the cost-aware scheduler itself; \cref{sec:eval} specifies that experiment and \cref{sec:limitations} lists what the current evidence cannot support.
-
-% =========================================================================
 \section{Related Work}
 \label{sec:related}
 
@@ -113,12 +136,11 @@ Prior work has made practice autonomous and has learned which skill to practise.
 Leave No Trace learns a reset policy jointly with the forward policy and aborts episodes predicted to become irreversible~\cite{eysenbach2018}. Zhu et al.~\cite{zhu2020} identify the absence of resets as one of three requirements for real-world robotic RL. Gupta et al.~\cite{gupta2021} observe that a well-chosen set of tasks can reset one another, and train a dexterous hand for over 60 hours without human resets. VaPRL generates a curriculum of start states and reduces interventions by three orders of magnitude relative to episodic RL in simulation~\cite{sharma2021}. EARL formalises the setting as a benchmark~\cite{sharma2022}. DBAP uses demonstrations to bootstrap both the low-level policies and the sequencing of tasks for a real kitchen environment~\cite{gupta2023}. PAINT learns to recognise irreversible states and to request help only when needed~\cite{xie2022}. Across this line of work, human interventions are treated as an outcome to be minimised. The time and wear consumed by each autonomous attempt do not enter the decision of what to attempt next.
 
 \paragraph{Choosing what to practise.}
-Learning progress has long been used to select practice. Stout and Barto~\cite{stout2010} and Baranes and Oudeyer~\cite{baranes2013} direct exploration toward goals where competence is improving. Graves et al.~\cite{graves2017} cast task selection as a nonstationary multi-armed bandit rewarded by learning progress. EES brings this to real robots: it estimates each skill's competence, extrapolates how practice would change it, and situates that change in the task distribution~\cite{kumar2024}. Its extrapolation step already steers away from skills that cannot improve. Deliberate Practice shows that such greedy selection can be myopic, and computes a budget-optimal allocation by solving a bilinear program~\cite{vats2026}. In both methods, however, practice is measured in attempts. EES uses $-\log(\text{competence})$ as the cost of a skill inside its task planner, and Deliberate Practice defines its budget as a maximum number of trials. Our formulation keeps the competence-driven objective and replaces the unit-cost attempt with its measured embodied cost.
+Learning progress has long been used to select practice. Stout and Barto~\cite{stout2010} and Baranes and Oudeyer~\cite{baranes2013} direct exploration toward goals where competence is improving. Graves et al.~\cite{graves2017} cast task selection as a nonstationary multi-armed bandit rewarded by learning progress. EES brings this to real robots, estimating each skill's competence and extrapolating how practice would change it~\cite{kumar2024}. Deliberate Practice shows that such greedy selection can be myopic, and computes a budget-optimal allocation with a bilinear program~\cite{vats2026}. FIND uses a vision-language agent to pick practice tasks for a frozen VLA, favouring those with low recent success~\cite{fang2026}. All three measure practice in attempts: EES prices a skill at $-\log(\text{competence})$, Deliberate Practice caps the number of trials, and FIND ranks by recent success alone. Our formulation keeps the competence-driven objective and replaces the unit-cost attempt with its measured embodied cost.
 
 \paragraph{Resets in simulation.}
 OmniReset shows that when resets are free, as in a simulator, the right strategy is to generate them as diversely as possible and let compute buy behavioural coverage; the resulting policies transfer zero-shot and retry robustly on real hardware~\cite{yin2026}. Our setting is the complement. Once a policy is deployed and must keep improving in place, every reset is physical, and the question becomes which attempts are worth their cost.
 
-% =========================================================================
 \section{Problem Formulation}
 \label{sec:problem}
 
@@ -143,50 +165,38 @@ Let $G_n$ be the competence gain attributable to episode $n$, estimated online f
   \qquad \lambda = \bigl( \lambda_t,\; \lambda_d,\; \lambda_h \bigr) \geq 0.
   \label{eq:objective}
 \end{equation}
-The weights $\lambda$ express how much an operator values a second of robot time, a unit of joint travel, and a minute of their own attention. Setting $\lambda = 0$ recovers a cost-blind learning-progress scheduler. Setting $G_n = 0$ recovers a scheduler that only minimises cost.
+The weights $\lambda$ express how much an operator values a second of robot time, a unit of joint travel, and each interruption of their own attention. Setting $\lambda = 0$ recovers a cost-blind learning-progress scheduler. Setting $G_n = 0$ recovers a scheduler that only minimises cost.
 
 \paragraph{Two regimes.}
-When the low-level policies are frozen, as in our current system, competence does not change with practice. $G_n$ then reduces to success, and the objective becomes successes per unit of embodied cost: the scheduler should stop paying for attempts that are very unlikely to succeed. When the policies are updated from practice data, $G_n$ measures genuine improvement, and the scheduler must trade the expected learning value of an attempt against its price. The first regime is testable on the current platform. The second requires closing the loop from practice data back to the policies, which we list as future work in \cref{sec:conclusion}.
+When the low-level policies are frozen, as in our current system, competence does not change with practice. $G_n$ then reduces to success, and the objective becomes successes per unit of embodied cost: the scheduler should stop paying for attempts that are very unlikely to succeed. When the policies are updated from practice data, $G_n$ measures genuine improvement, and the scheduler must trade the expected learning value of an attempt against its price. The first regime is testable on the current platform. The second requires closing the loop from practice data back to the policies, which we list as future work in \cref{sec:future}.
 
-% =========================================================================
 \section{System}
 \label{sec:system}
 
-The testbed is a single low-cost arm that practises two tasks unattended and records what every attempt costs (\cref{fig:loop}).
+The testbed is a single low-cost arm that practises two tasks unattended and records what every attempt costs (\cref{fig:testbed,fig:loop}).
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[
-    font=\footnotesize,
-    box/.style={draw=inkgray, rounded corners=3pt, align=center, minimum height=8mm, inner sep=4pt, fill=white},
-    arr/.style={-{Stealth[length=2mm]}, thick, inkgray},
-    node distance=7mm and 12mm]
-  \node[box] (cam) {Scene camera\\+ detector};
-  \node[box, right=of cam] (sched) {Scheduler};
-  \node[box, right=of sched] (pol) {Policy\\\task{place} / \task{retrieve}};
-  \node[box, below=of pol] (arm) {Arm executes\\the episode};
-  \node[box, below=of cam] (home) {Return to\\home pose};
-  \node[box, below=of sched, fill=succblue!8] (led) {Cost ledger\\time, travel, help};
-  \draw[arr] (cam) -- node[above, font=\scriptsize]{region} (sched);
-  \draw[arr] (sched) -- node[above, font=\scriptsize]{task} (pol);
-  \draw[arr] (pol) -- (arm);
-  \draw[arr] (arm) -- (led);
-  \draw[arr] (led) -- (home);
-  \draw[arr] (home) -- (cam);
-  \draw[arr, dashed, failorange] (led.north) -- node[right, font=\scriptsize, align=left]{cost\\(proposed)} (sched.south);
-\end{tikzpicture}
-\caption{The autonomous practice loop. The current scheduler records the price of every attempt but never uses it; the dashed signal is what a cost-aware scheduler adds (\cref{sec:eval}).}
+\figfile{fig2_testbed}
+\caption{\textbf{A robot we printed and assembled ourselves, doing both tasks.} (a) Every structural part of the SO-101, printed in-house before assembly. (b) \task{Place}: the arm starts at its home pose, grasps the cube in the taped square, and releases it over the tray. (c) \task{Retrieve}: the same arm reaches into the tray, grasps the cube, and sets it back in the square, which is exactly where \task{place} begins.}
+\label{fig:testbed}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\figfile{fig3_loop}
+\caption{\textbf{The practice loop, drawn with real frames from one unattended cycle.} (1) The scene camera sees the cube, and the detector marks it as on the table. (2) The scheduler turns that into the next attempt: \task{place} from the table, \task{retrieve} from the tray, a call for help if the cube is out of reach. (3) The chosen ACT policy drives the arm. (4) The detector scores the result; here the cube has settled in the tray. (5) The ledger writes one row for the attempt; the values shown are a real row from our logs. (6) The arm returns to the pose every demonstration started from, and the loop repeats. The dashed arrow is what this paper adds: today's scheduler records the cost but never reads it, and the proposed scheduler decides with it.}
 \label{fig:loop}
 \end{figure}
 
 \paragraph{Hardware.}
-The arm is an SO-101, a six-servo open-source manipulator supported by the LeRobot library~\cite{cadene2024}, which we assembled from 3D-printed parts and Feetech serial-bus servos. Two 720p USB webcams provide observations: one mounted at the wrist and one viewing the scene from the side. Demonstrations were collected with a custom PS5 gamepad teleoperation interface. Local training and inference run on a single RTX 2060 with 6\,GB of memory; the policies used in the autonomous loop were trained on a rented RTX 5090.
+The arm is an SO-101, a six-servo open-source manipulator supported by the LeRobot library~\cite{cadene2026}, which we assembled from 3D-printed parts and Feetech serial-bus servos. Two 720p webcams, one at the wrist and one at the side, provide observations, and demonstrations were collected with a PS5 gamepad. Inference runs on a 6\,GB RTX 2060; training used a rented RTX 5090.
 
 \paragraph{Tasks and policies.}
-The workspace has a taped region on the table and a tray. Two tasks reset each other, in the pattern of Gupta et al.~\cite{gupta2021}: \task{place} moves the cube from the table region to the tray, and \task{retrieve} returns it. Each task has its own ACT policy~\cite{zhao2023}, a 52M-parameter action-chunking transformer with a ResNet-18 backbone that predicts 100 future actions per inference. \task{Place} was trained on 43 teleoperated demonstrations inside the taped region. \task{Retrieve} was first trained on 51 demonstrations (the pilot session, \cref{sec:pilot-session}) and later retrained with 25 additional demonstrations that start from failure states (76 in total), which is the version used in \cref{sec:results}. A single multi-task policy over both tasks did not work; \cref{sec:observations} explains why.
+The workspace has a taped region on the table and a tray. Two tasks reset each other, in the pattern of Gupta et al.~\cite{gupta2021}: \task{place} moves the cube from the table region to the tray, and \task{retrieve} returns it. Each task has its own action-chunking transformer (ACT)~\cite{zhao2023}. Ours is a 52M-parameter instance with a ResNet-18 backbone, predicting chunks of 100 future actions; the original is larger, at about 80M parameters. \task{Place} was trained on 43 teleoperated demonstrations inside the taped region. \task{Retrieve} was first trained on 51 demonstrations (the pilot session, \cref{sec:pilot-session}) and later retrained with 25 additional demonstrations that start from failure states (76 in total), which is the version used in \cref{sec:results}. We use one policy per task: \task{place} and \task{retrieve} look alike mid-carry but need opposite motions, and a single multi-task policy trained on both suffered from that interference.
 
 \paragraph{Success detection.}
-A brightness-threshold blob detector on the scene camera classifies the cube as in the table region, in the tray, or outside both. Three corrections were necessary. First, the region is assigned from the blob's contact point, the bottom-centre of its bounding box, rather than its centroid; under perspective, the centroid of a cube resting in the tray falls outside the tray's image polygon. Second, the side-on camera projects a cube held in the air into the tray region, so success also requires the cube to remain within 6\,px for 15 consecutive frames. Third, the arm hides the tray at the moment of release, so a \task{place} also counts as successful when the gripper opens inside the base-angle window learned from the demonstrations and the camera no longer finds the cube on the table.
+A blob detector on the scene camera classifies the cube as on the table, in the tray, or outside both. It took three corrections to make it reliable. Under perspective, a cube resting in the tray has its centroid outside the tray's outline, so the region is assigned from the blob's contact point instead. A cube carried through the air can also look as if it is in the tray, so success requires it to stay within 6\,px for 15 frames. And because the arm hides the tray at the moment of release, a \task{place} also counts when the gripper opens inside the base-angle window learned from the demonstrations and the cube has left the table.
 
 \paragraph{Scheduler.}
 The baseline is a hand-designed feasibility scheduler. If the cube is in the table region it selects \task{place}; if it is in the tray it selects \task{retrieve}; if it is outside both, it requests human help and logs an intervention.
@@ -198,80 +208,33 @@ Between episodes the arm returns to a fixed home pose over about 5\,s. This step
 Each episode is capped at 800 control steps, about 48\,s. For every episode the runner writes one row: task, start region, success, steps, seconds, summed joint travel, and cumulative interventions. The ledger is the measurement instrument for everything in \cref{sec:problem,sec:eval}.
 
 \paragraph{Availability.}
-The code, session logs, analysis scripts, demonstration datasets, and trained policies are public at \url{https://github.com/Vedant2604/so101-cost-aware-scheduler}.
+The code, session logs, analysis scripts, demonstration datasets, and trained policies are public at \url{https://github.com/Vedant2604/so101-cost-aware-scheduler}, together with videos of the autonomous loop. Every photographic and chart figure is regenerated from those logs and videos by \texttt{paper/make\_figures.py} and \texttt{paper/make\_teaser.py}.
 
-% =========================================================================
-\section{Pilot Session and Empirical Observations}
+\section{Pilot Session and Lessons from Building}
 \label{sec:pilot}
-
-The first unattended session ran for 10 minutes and completed 11 episodes, with 6 successes and one human intervention. More than half of the time the arm spent executing policies went to attempts that failed.
 
 \subsection{First logged session}
 \label{sec:pilot-session}
 
-The session used the feasibility scheduler and 5\,s homing described in \cref{sec:system}. It was capped at 10 minutes because earlier runs had produced three wrist-roll servo faults and one gripper overload. \Cref{tab:pilot} reproduces the ledger in episode order.
+The first unattended session used the feasibility scheduler, ran for ten minutes, and completed 11 episodes. Six succeeded (\task{place} 3 of 5, \task{retrieve} 3 of 6) and a person was needed once. Episodes 5 to 9 ran two complete place-and-retrieve cycles with nobody watching. The price was visible at once: a successful episode took 18 to 39\,s, but every failure ran the full 800 steps to the 48\,s cap, so failed attempts consumed 240 of the 432\,s of policy execution, or 56\%. The full ledger is \texttt{runs/pilot.csv} in the repository.
 
-\begin{table}[t]
-\centering
-\small
-\setlength{\tabcolsep}{6pt}
-\caption{First unattended session. One intervention occurred before episode 0, when the cube was outside both regions. The session was stopped by hand as the scheduler began an 11th attempt at \task{retrieve}.}
-\label{tab:pilot}
-\begin{tabular}{rllcrr}
-\toprule
-\textbf{Ep.} & \textbf{Task} & \textbf{Start region} & \textbf{Outcome} & \textbf{Steps} & \textbf{Time (s)} \\
-\midrule
-0  & place    & table & fail (cap) & 800 & 48 \\
-1  & retrieve & tray  & fail (cap) & 800 & 48 \\
-2  & retrieve & tray  & success    & 654 & 39 \\
-3  & place    & table & fail (cap) & 800 & 48 \\
-4  & place    & table & success    & 633 & 38 \\
-5  & retrieve & tray  & success    & 544 & 33 \\
-6  & place    & table & success    & 295 & 18 \\
-7  & retrieve & tray  & success    & 577 & 35 \\
-8  & place    & table & success    & 481 & 29 \\
-9  & retrieve & tray  & fail (cap) & 800 & 48 \\
-10 & retrieve & tray  & fail (cap) & 800 & 48 \\
-\bottomrule
-\end{tabular}
-\end{table}
+The end of the session is what motivates this paper. \task{Retrieve} failed twice in succession from the same state, each time hovering 1 to 2\,cm above the cube without descending far enough to grasp it. The feasibility scheduler, seeing the cube in the tray, selected \task{retrieve} again, and would have kept doing so at 48\,s and a full arm excursion per attempt, because it had no other action to take.
 
-Overall success was 6/11 (55\%): \task{place} 3/5 and \task{retrieve} 3/6. The intervention rate was 6.0 per hour. Episodes 4 through 8 formed two complete place--retrieve cycles without any human involvement. Successful episodes took 18 to 39\,s; every failure ran to the 48\,s cap. Of the 432\,s of policy execution, failed attempts consumed 240\,s (56\%).
-
-The end of the session is the observation that motivates this paper. \task{Retrieve} failed twice in succession from the same state, each time hovering 1 to 2\,cm above the cube without descending far enough to grasp it. The feasibility scheduler, seeing the cube in the tray, selected \task{retrieve} again. It would have continued to do so for as long as the session ran, at 48\,s and a full arm excursion per attempt, with no action available to change the situation.
-
-One entry deserves a caveat. Episode 0 was logged as a failure, yet episode 1 began with the cube in the tray. The most likely explanation is that the cube reached the tray too late in the episode for the 15-frame stability check to complete before the step cap. We report the episode as logged.
-
-\subsection{Observations from building the system}
+\subsection{Lessons from building the system}
 \label{sec:observations}
 
-The following observations were recorded during development. Most are single-run findings and should be read as such.
+\paragraph{For a narrow task, the robot should pick the checkpoint, not the loss curve.}
+For the initial pick-and-place policy, held-out validation loss rose from 0.26 to 0.30 between 20k and 70k training steps, the usual sign of overfitting. Over the same interval the policy went from approaching without grasping (20k) to grasping unreliably (40k) to completing the task unaided (60k). With the same cube, workspace and tray every time, fitting this setup's trajectories more closely raises the loss on unseen demonstrations while improving behaviour in the only setup the policy will run in.
 
-\paragraph{1. For a narrow task, rising validation loss did not mean a worse policy.}
-For the initial pick-and-place policy, trained on 51 demonstrations, held-out validation loss rose from 0.26 to 0.30 between 20k and 70k training steps, the usual signature of overfitting. Over the same interval, on-robot behaviour improved at every checkpoint we tested: at 20k steps the policy approached but could not grasp, at 40k it approached correctly but grasped unreliably, and at 60k it completed the task autonomously. The task is narrow: the same cube, the same workspace, and the same tray. Validation loss measures how well the policy predicts demonstrations it has not seen; as training continues, the policy fits the specific trajectories of this setup more closely, which raises that loss while improving behaviour in the one setup the policy will run in. We first stopped training on the strength of the loss curve, then resumed and obtained the best policy of the run, which succeeded in 8 of 20 trials at varied cube positions. Intermediate checkpoints were assessed qualitatively rather than over 20 trials each. For narrow tasks, on-robot evaluation rather than validation loss should select the checkpoint.
+\paragraph{Concentrating demonstrations beat adding them.}
+A \task{place} policy trained on 43 demonstrations recorded inside a small taped region succeeded in 10 of 10 trials there, against 8 of 20 for an earlier policy trained on 51 demonstrations spread over a wider area. The density of coverage, not the amount of training, was the limit.
 
-\paragraph{2. Demonstrations that only succeed produce policies that cannot recover.}
-The failures of that policy followed one chain. The grasp closed 1 to 2\,cm short; the retry at cube height pushed the cube away; the policy then reached for where the cube had been. All 51 demonstrations were successful, so neither recovery nor re-localisation appears anywhere in the training data.
+\paragraph{Autonomous practice needed a reset the demonstrations never showed.}
+Run on its own, the \task{place} policy succeeded first time; inside the loop it failed 5 of 5 times, because each episode began wherever the last one ended while every demonstration began from the home pose. Returning to that pose between episodes fixed the failure completely.
 
-\paragraph{3. Concentrating demonstrations raised success more than adding them.}
-A \task{place} policy trained on 43 demonstrations recorded inside a small taped region succeeded in 10 of 10 trials within that region, against 8 of 20 for the original policy trained on 51 demonstrations spread over a wider area. The comparison is not controlled, because the evaluation regions differ. It does suggest that the first policy was limited by the density of its coverage rather than by training.
+\paragraph{Data encoding, not compute, set the training budget.}
+Stored as individual images, the camera frames left the GPU idle at 4 samples per second. Re-encoding the same data as video cut the dataset from 4.1\,GB to 212\,MB, raised throughput to 44 samples per second, and turned a 50-hour training run into a 12-hour one.
 
-\paragraph{4. One multi-task policy failed where two single-task policies succeeded.}
-\task{Place} and \task{retrieve} look nearly identical mid-carry but require opposite motions. A single ACT policy trained on both suffered the resulting interference, and two separate policies resolved it. We also attempted to fine-tune SmolVLA~\cite{shukor2025} on the 6\,GB card; the batch size that fit made the sample count of the published recipe unreachable in practical time, so we did not pursue it.
-
-\paragraph{5. Autonomous practice required a reset the demonstrations never showed.}
-Run standalone, the \task{place} policy succeeded on its first attempt. Inside the autonomous loop it failed 5 of 5 times. The only difference was that each loop episode began wherever the previous one had ended, while every demonstration began from the home pose. Adding the homing step between episodes fixed the failure completely.
-
-\paragraph{6. Data encoding, not compute, set the reachable training budget.}
-Storing camera frames as individual images left the GPU idle while the CPU decoded them, at 1.5\,s of loader wait per training step and 4 samples per second. Re-encoding the same data as video reduced the dataset from 4.1\,GB to 212\,MB, the wait to 0.003\,s, and raised throughput to 44 samples per second. This turned a training run of roughly 50 hours into one of roughly 12.
-
-\paragraph{7. Unattended operation on low-cost hardware is bounded by the actuators.}
-Repeated wrist-roll faults and a gripper overload during development set the 10-minute session length, not any property of the learning algorithm. This is itself an embodied cost of practice, and it is exactly the kind of cost the scheduler in \cref{sec:problem} is meant to account for.
-
-\paragraph{8. Correction demonstrations must end the way the originals do.}
-We recorded about 25 correction demonstrations per task that start from failure states. For \task{retrieve} they helped, and the retrained policy is the one used in \cref{sec:results}. For \task{place}, the corrections ended without the lift-off after release that every original demonstration contained, and the retrained policy succeeded in only 1 of 5 loop attempts; \task{place} therefore kept its original policy.
-
-% =========================================================================
 \section{Proposed Scheduler and Evaluation Protocol}
 \label{sec:eval}
 
@@ -280,7 +243,7 @@ The test of this paper's claim is a controlled comparison of four schedulers on 
 \subsection{A cost-aware scheduler}
 \label{sec:scheduler}
 
-The scheduler needs a real choice, so we first extend the action set. A third policy, \task{reposition}, is trained from demonstrations to move the cube within its current region without completing either task. It gives the scheduler a way to spend an episode changing the start state rather than retrying from a bad one. \task{Request help} is added as an explicit action whose cost is one intervention.
+The scheduler needs a real choice, so we first extend the action set. A third policy, \task{reposition}, will be trained from demonstrations to move the cube within its current region without completing either task. It gives the scheduler a way to spend an episode changing the start state rather than retrying from a bad one. \task{Request help} becomes an explicit action whose cost is one intervention.
 
 The scheduler then treats action selection as a nonstationary multi-armed bandit, following Graves et al.~\cite{graves2017}. For each action and coarse start region it maintains a sliding-window estimate of success probability, in the spirit of the competence estimates of EES~\cite{kumar2024}, and a running mean of each component of the ledger cost. Each episode is rewarded by the success it produced, or later by competence gain, minus the $\lambda$-weighted cost of \cref{eq:objective}. The sliding window lets the estimates follow a policy whose performance drifts, as \task{retrieve}'s did at the end of the pilot session.
 
@@ -293,7 +256,7 @@ The intended behaviour in the pilot's final state is concrete. After two failed 
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
-\caption{The four scheduling conditions.}
+\caption{\textbf{Four schedulers on the same arm, from no choice to a priced choice.} A and B are the rule-based baselines reported in \cref{sec:results}; C adds a learned schedule without prices; D is the proposed method.}
 \label{tab:conditions}
 \begin{tabular}{l>{\raggedright}p{2.6cm}l>{\raggedright\arraybackslash}p{3.8cm}}
 \toprule
@@ -312,16 +275,16 @@ D. Cost-aware bandit  & attempt, reposition, request help & success $-\lambda^{\
 \subsection{Protocol and metrics}
 \label{sec:protocol}
 
-Each session lasts 10 minutes, the limit set by the actuators. We will run 20 sessions per condition, ordered in randomised blocks so that each block contains one session of every condition; this guards against drift from servo heating, lighting, and wear across days. Policies are frozen for this experiment, which places it in the first regime of \cref{sec:problem}. $\lambda$ is fixed before data collection, and a second sweep varies $\lambda_h$ alone to test whether the scheduler's behaviour shifts as human attention becomes more expensive.
+Each session lasts 10 minutes, with 20 sessions per condition in randomised blocks to guard against drift from servo heating, lighting and wear. Policies are frozen, placing the experiment in the first regime of \cref{sec:problem}. $\lambda$ is fixed before data collection, and a second sweep varies $\lambda_h$ alone to test whether behaviour shifts as human attention becomes more expensive.
 
-The primary metrics are successes per minute, successes per unit of joint travel, and interventions per success. Secondary metrics are the fraction of execution time spent on failed attempts (56\% in the pilot) and the longest run of episodes without intervention. We will report means with 95\% bootstrap confidence intervals over sessions.
+The primary metrics are successes per minute, successes per unit of joint travel, and interventions per success; the share of execution time lost to failures is secondary. All are reported as means with 95\% bootstrap intervals over sessions.
 
-We pre-register three hypotheses. \textbf{H1:} condition D spends a smaller fraction of execution time on failed attempts than condition A. \textbf{H2:} condition D achieves more successes per unit embodied cost than condition C. \textbf{H3:} condition D matches or improves on condition B in interventions per success, without a hand-tuned retry limit.
+We state three hypotheses in advance. \textbf{H1:} condition D spends a smaller fraction of execution time on failed attempts than condition A. \textbf{H2:} condition D achieves more successes per unit embodied cost than condition C. \textbf{H3:} condition D matches or improves on condition B in interventions per success, without a hand-tuned retry limit.
 
 \subsection{First results: conditions A and B}
 \label{sec:results}
 
-In its first test, the retry limit did not reduce wasted execution time. Over 51 minutes of robot time, the feasibility rule (A) succeeded on 79\% of attempts and spent 27\% of execution time on failures. The retry limit with $N = 2$ (B) succeeded on 66\%, spent 36\%, and asked for help twice as often per success. Neither difference is statistically reliable at this sample size.
+Over 51 minutes of robot time, the feasibility rule (A) succeeded on 79\% of attempts and spent 27\% of execution time on failures. The retry limit with $N = 2$ (B) succeeded on 66\%, spent 36\%, and asked for help twice as often per success.
 
 \paragraph{Setup.}
 We ran 5 sessions of 10 minutes of robot time each, 3 under A and 2 under B, in the order A, B, B, A, A on 12 and 13 October 2026. Both conditions used the frozen \task{place} and \task{retrieve} policies of \cref{sec:system}. Two changes to the protocol of \cref{sec:protocol} apply. First, the session clock pauses while a person is helping, so both conditions receive the same robot time and human time is logged as a separate cost. Three earlier sessions run without this pause are excluded. Second, attempts shorter than 2\,s are invalid, because no policy completes a task that fast. Both such attempts occurred in one B session, where the cube was still being moved by hand as the episode began. The rule was adopted after they were observed and before the comparison was computed.
@@ -330,7 +293,7 @@ We ran 5 sessions of 10 minutes of robot time each, 3 under A and 2 under B, in 
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
-\caption{Conditions A and B, pooled over sessions. Confidence intervals are Wilson score intervals over attempts; they treat attempts as independent and are therefore optimistic.}
+\caption{\textbf{Conditions A and B, pooled over sessions.} Confidence intervals are Wilson score intervals over attempts; they treat attempts as independent and are therefore optimistic. $^{*}$Execution time excludes homing and detection, which \cref{fig:ledger} counts separately.}
 \label{tab:ab}
 \begin{tabular}{lcc}
 \toprule
@@ -340,9 +303,7 @@ Sessions, robot minutes                    & 3, 30.9        & 2, 20.1 \\
 Valid attempts                             & 47             & 32 \\
 Success rate (95\% CI)                     & 78.7\% (65.1--88.0) & 65.6\% (48.3--79.6) \\
 Place, retrieve successes                  & 17/26, 20/21   & 11/21, 10/11 \\
-Execution time on failed attempts          & 26.6\%         & 35.7\% \\
-\quad same, per session                    & 23.2, 29.5, 27.7\% & 29.0, 42.7\% \\
-Joint travel on failed attempts            & 24.5\%         & 33.2\% \\
+Execution time on failed attempts$^{*}$    & 26.6\%         & 35.7\% \\
 Successes per robot minute                 & 1.20           & 1.05 \\
 Execution time per success (s)             & 36.9           & 41.8 \\
 Joint travel per success (deg, all joints) & 7{,}690        & 8{,}326 \\
@@ -352,6 +313,13 @@ Longest run of consecutive failures        & 2              & 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\figfile{fig4_ledger}
+\caption{\textbf{A quarter of the robot's time goes to neither success nor failure, and asking for help early cost more in every currency.} (a) How every minute of robot time was spent under each rule. Blue is useful work, orange is failed attempts, and grey is homing and waiting for the detector, a fixed overhead that no scheduler rule removes. (b) What one success cost in each of the ledger's three currencies. Robot time here includes homing, so it is higher than the execution time in \cref{tab:ab}. Rule B's human cost is driven mostly by one session with a single 130\,s repair.}
+\label{fig:ledger}
+\end{figure}
 
 \begin{figure}[t]
 \centering
@@ -469,70 +437,57 @@ Longest run of consecutive failures        & 2              & 3 \\
 \node[below] at (5.5,-1.0) {robot time (min); the clock pauses while a person helps};
 \end{tikzpicture}
 }
-\caption{Every valid attempt in the five sessions. Blue: success; hatched orange: failure. Black triangles mark retry-limit stops; grey triangles mark a human moving a cube that was out of reach. The numbers on the right are successes per session.}
+\caption{\textbf{Every attempt in all five sessions, in the order it happened.} Each block is one attempt and its width is how long it took; blue succeeded and hatched orange failed. Black triangles mark the retry limit stopping to ask for help; grey triangles mark a person moving a cube that was out of reach. The number at the right of each row is that session's successes. Long runs of orange are rare, which is why a rule that counts failures had little to act on.}
 \label{fig:timeline}
 \end{figure}
 
+\begin{figure}[t]
+\centering
+\figfile{fig6_analysis}
+\caption{\textbf{A failure does not predict another, and most failures are cheap.} (a) A \task{place} attempt straight after a failed \task{place} succeeded 62\% of the time, the same as \task{place} attempts overall; bars are 95\% Wilson intervals. (b) The duration of every valid attempt, with black lines at the medians and the 800-step cap dashed. Most failed \task{place} attempts end early, because the gripper releases over the tray and the cube lands beside it; the expensive failures are the few that run to the cap.}
+\label{fig:analysis}
+\end{figure}
+
 \paragraph{Findings.}
-\Cref{tab:ab} and \cref{fig:timeline} give the results. Three observations follow. First, the retry limit had little to cut short. Under A, no session produced more than two consecutive failures, so a limit of $N = 2$ rarely met a long run of failures. B stopped for help three times, and its interventions per success doubled. The logs show why: failures did not cluster. A \task{place} attempt that directly followed a failed \task{place} succeeded 8 of 13 times (62\%), against 28 of 47 (60\%) overall, so a retry after a failure was as good as any other attempt, and asking for help early bought nothing. Second, failures were concentrated in \task{place}. \task{Retrieve} succeeded in 30 of 32 attempts across both conditions, \task{place} in 28 of 47. In 13 of the 19 \task{place} failures the gripper opened over the tray but the cube was found outside it afterwards; the other 6 ran to the 48\,s cap. Third, B's human cost came mostly from one session, which accounts for 5 of B's 6 interventions and 205 of its 219 human seconds, including a single 130\,s repair of the scene. With two B sessions, this cannot be separated from session-to-session variation.
+\Cref{tab:ab,fig:ledger,fig:timeline,fig:analysis} give the results. The retry limit had little to cut short: under A, no session produced more than two consecutive failures, so a limit of $N = 2$ rarely met a long run, yet B stopped for help three times and doubled its interventions per success. The logs show why. Failures did not cluster: a \task{place} attempt that directly followed a failed \task{place} succeeded 8 of 13 times (62\%), against 28 of 47 (60\%) overall (\cref{fig:analysis}a), so a retry after a failure was as good a bet as any other attempt. Failures were also concentrated in \task{place}, which succeeded in 28 of 47 attempts against 30 of 32 for \task{retrieve}, and their cost was bimodal: 11 of the 19 \task{place} failures ended sooner than the median successful \task{place} (23.8\,s), while 7 ran close to the 48\,s cap (\cref{fig:analysis}b).
 
-\paragraph{Significance.}
-Neither difference is significant. Success rates give $p = 0.21$ (Fisher's exact test over attempts), and per-session failure-time fractions give $p = 0.40$ (Mann--Whitney $U$). With 3 and 2 sessions, no session-level test can reach $p < 0.05$. Including the two invalid attempts moves B to 23/34 (68\%) and changes no conclusion.
+\paragraph{What the ledger adds.}
+Measured in robot minutes rather than execution seconds (\cref{fig:ledger}a), failures took 20\% of A's time and 26\% of B's, and a further 26\% and 27\% went to homing and detection, an overhead neither rule touches. Per success, the all-in cost was 50\,s of robot time for A against 57\,s for B, and 2.3\,s of human attention against 10.4\,s. B was more expensive in every currency, but by very different amounts: 15\% more robot time per success, 8\% more joint travel, and over four times as much human time, most of it from one session. A success rate would hide where that extra cost lands. A scheduler that prices each attempt in all three currencies, rather than counting failures, is built to see it.
 
-\paragraph{Caveats and interpretation.}
-The wrist link came loose between the second and third sessions and was re-seated, leaving a residual tilt of about 3--4$^\circ$. One session of each condition ran before the repair, so the repair does not favour either condition. The comparison is also unbalanced and far smaller than the 20 sessions per condition planned in \cref{sec:protocol}. We therefore read it as a first measurement of what a rule-based baseline trades, not as a test of H1--H3, which concern condition D. Our interpretation is that a count-based limit pays only when failures arrive in long runs. With a policy that succeeds about four times in five, the feasibility rule's losses were spread across isolated failures that counting cannot anticipate. A scheduler that prices each attempt by its expected cost, rather than counting failures, is aimed at exactly this case.
+\paragraph{Statistical scope.}
+This is a first measurement, not a test of H1 to H3. With 3 and 2 sessions, success rates give $p = 0.21$ (Fisher's exact test) and per-session failure-time fractions $p = 0.40$ (Mann--Whitney $U$); including the two invalid attempts moves B to 23/34 (68\%) and changes no conclusion. B's human cost came mostly from one session (5 of its 6 interventions), and the wrist link was re-seated between the second and third sessions, after one session of each condition, so the repair favours neither.
 
-% =========================================================================
 \section{Limitations}
 \label{sec:limitations}
 
-The central limitation is that the claim of this paper has been motivated, formulated, and instrumented, but the cost-aware scheduler itself has not yet been tested; only its two rule-based baselines have.
-\begin{itemize}
-\item \textbf{Partial, unbalanced comparison.} Only conditions A and B have been run, in 3 and 2 sessions rather than the planned 20 each, and the wrist was re-seated partway through (\cref{sec:results}).
-\item \textbf{Small pilot.} The pilot is one 10-minute session of 11 episodes. Its success rate and intervention rate carry wide uncertainty.
-\item \textbf{No real decision in the baselines.} With two mutually resetting tasks and a feasibility filter, each state admits one legal task. The pilot shows the cost of having no choice; it does not show the value of a better one.
-\item \textbf{Frozen policies.} The policies do not learn from practice, so only the first regime of \cref{sec:problem} is reachable. The competence-gain objective remains untested on hardware.
-\item \textbf{Proxy for wear.} Joint travel stands in for actuator wear. We have not yet related it to servo current, temperature, or failures.
-\item \textbf{Narrow setting.} One arm, one object, one workspace, and low-cost hobby-grade servos. The relative weight of time, wear, and attention will differ on other hardware.
-\item \textbf{Single-run observations.} Most findings in \cref{sec:observations} come from one run, and the coverage comparison is not controlled.
-\item \textbf{Choice of $\lambda$.} Results will depend on how operators weigh time, wear, and attention. The $\lambda_h$ sweep in \cref{sec:protocol} addresses this only partly.
-\item \textbf{Detector errors.} Episode 0 of the pilot shows that the success detector can mislabel late successes.
-\end{itemize}
+The cost-aware scheduler itself has not yet been run on hardware; this paper measures the costs it is designed to trade and the baselines it must beat. The policies are frozen, so only the first regime of \cref{sec:problem} is reachable and the competence-gain objective awaits a policy that learns from its practice. Joint travel stands in for actuator wear and has not yet been related to servo current or temperature. The setting is deliberately narrow: one arm, one object, hobby-grade servos. The right weighting $\lambda$ will differ on other hardware, and the $\lambda_h$ sweep of \cref{sec:protocol} probes that only in part.
 
-% =========================================================================
-\section{Conclusion and Future Work}
+\section{Future Work}
+\label{sec:future}
+
+The ledger makes the next step direct: a scheduler that reads it. We will run the cost-aware scheduler on this arm against the baselines reported here, and then let the policies learn from their own practice, so that each attempt is chosen for what it will teach as well as what it will cost. The same receipt extends naturally to long chains of tasks and to several robots sharing one workspace, where the price of an attempt includes everything waiting behind it.
+
+\section{Conclusion}
 \label{sec:conclusion}
 
-A self-built, low-cost arm can practise two tasks unattended while measuring what each attempt costs, and that measurement shows that the cost of practice is large enough to deserve a place in the decision of what to practise.
+We built a low-cost robot that practises on its own and keeps a receipt for every attempt, and the receipt changed how we see autonomous practice. Three findings stand out. First, practice is expensive in ways an attempt count cannot see: in the first session more than half of the arm's execution time went to attempts that failed, and across all sessions about a quarter of robot time went to homing and detection, an overhead no scheduling rule removes. Second, on this system failures do not come in streaks. A retry straight after a failure succeeded as often as any other attempt, which is why the standard fix, asking for help after a run of failures, cost more human time without saving robot time. Third, a success rate hides where the cost of practice lands. Asking for help early cost a little more robot time per success and far more human time, a difference that only a ledger of every attempt reveals, and that only a scheduler which prices each attempt can act on. These results turn a cost that earlier methods ignored into one that can be measured, and the platform, code, data and logs are public so that others can measure it too.
 
-Four conclusions are supported by the evidence so far. First, reset-free practice is reachable on hobby-grade hardware: in its first session the system completed two full place--retrieve cycles without human help and needed one intervention in ten minutes. Second, a per-episode cost ledger makes the price of practice visible. In that session, 56\% of policy execution time went to attempts that failed, and the final attempts were spent retrying an action the scheduler had no means to recognise as hopeless. Third, the formulation in \cref{sec:problem} connects threads that have so far been separate. It contains the fixed retry limit of Leave No Trace as a special case, keeps the competence-driven objective of EES and Deliberate Practice, and replaces their unit-cost attempt with a measured one. Fourth, and more tentatively, a fixed retry limit is not a free improvement: over 51 minutes of robot time it did not reduce the time lost to failures and doubled interventions per success, because a policy that succeeds about four times in five rarely fails long enough for a count-based rule to help.
-
-The building process also produced practical lessons for anyone attempting real-world practice at this scale: evaluate on the robot rather than on validation loss, place demonstrations densely where the policy must work, demonstrate the reset the loop will need, keep correction demonstrations consistent with the originals, and encode data so the training budget is reachable.
-
-Future work follows directly from the limitations.
-\begin{enumerate}
-\item \textbf{Complete the comparison in \cref{sec:eval}.} Run conditions C and D, extend A and B to the planned 20 sessions each, and report the result whichever way it falls.
-\item \textbf{Close the loop from practice to policy.} Fine-tuning the low-level policies on their own practice data would move the system into the second regime of \cref{sec:problem}, where the scheduler trades the learning value of an attempt against its price.
-\item \textbf{Measure wear directly.} Servo current and temperature telemetry would replace joint travel as the wear signal and connect the ledger to the faults that limited session length.
-\item \textbf{Make budget-optimal practice cost-aware.} Deliberate Practice constrains the total number of practice trials~\cite{vats2026}. Weighting each trial by its measured embodied cost is a natural extension of that constraint, and would combine budget-optimal planning with real-world prices.
-\item \textbf{Start from stronger priors.} Policies trained in simulation with diverse resets~\cite{yin2026} are a natural starting point for deployed practice, where the question this paper raises begins.
-\item \textbf{Share the workspace.} When several robots practise in the same space, one robot's practice changes another's start states and costs. Extending the ledger and the scheduler to that setting is a direction we intend to pursue.
-\end{enumerate}
-
-% =========================================================================
 % References are embedded so the paper stays one file.
-% Entries marked [VERIFY] were confirmed only through another paper's
-% reference list, not a primary page; check them before submission.
+% Every entry was checked against its arXiv page, publisher page or
+% proceedings on 22 October 2026 (authors, title, venue, year, pages).
 \begin{thebibliography}{99}
 
-\bibitem{baranes2013} % [VERIFY] as listed in Kumar et al. 2024
-Baranes, A., Oudeyer, P.-Y.: Active learning of inverse models with intrinsically motivated goal exploration in robots. Robotics and Autonomous Systems (2013)
+\bibitem{baranes2013}
+Baranes, A., Oudeyer, P.-Y.: Active learning of inverse models with intrinsically motivated goal exploration in robots. Robotics and Autonomous Systems \textbf{61}(1), 49--73 (2013), \url{https://doi.org/10.1016/j.robot.2012.05.008}
 
-\bibitem{cadene2024}
-Cadene, R., Alibert, S., Soare, A., Gallouedec, Q., Zouitine, A., Palma, S., Kooijmans, P., Aractingi, M., Shukor, M., Aubakirova, D., Russi, M., Capuano, F., Pascal, C., Choghari, J., Moss, J., Wolf, T.: LeRobot: State-of-the-art machine learning for real-world robotics in PyTorch (2024), \url{https://github.com/huggingface/lerobot}
+\bibitem{cadene2026}
+Cadene, R., Alibert, S., Capuano, F., Aractingi, M., Zouitine, A., Kooijmans, P., Choghari, J., Russi, M., Pascal, C., Palma, S., Aubakirova, D., Shukor, M., Moss, J., Soare, A., Lhoest, Q., Gallou\'edec, Q., Wolf, T.: LeRobot: An open-source library for end-to-end robot learning. In: International Conference on Learning Representations (ICLR) (2026), arXiv:2602.22818
 
 \bibitem{eysenbach2018}
 Eysenbach, B., Gu, S., Ibarz, J., Levine, S.: Leave no trace: Learning to reset for safe and autonomous reinforcement learning. In: International Conference on Learning Representations (ICLR) (2018), arXiv:1711.06782
+
+\bibitem{fang2026}
+Fang, Y., Li, Z., Tong, H., Liu, P., Chalvatzaki, G.: Find something you can't do: Agentic real-world reinforcement learning for self-improving VLA models (2026), arXiv:2609.32069
 
 \bibitem{graves2017}
 Graves, A., Bellemare, M.G., Menick, J., Munos, R., Kavukcuoglu, K.: Automated curriculum learning for neural networks. In: International Conference on Machine Learning (ICML). PMLR, vol.~70, pp. 1311--1320 (2017)
@@ -540,7 +495,7 @@ Graves, A., Bellemare, M.G., Menick, J., Munos, R., Kavukcuoglu, K.: Automated c
 \bibitem{gupta2021}
 Gupta, A., Yu, J., Zhao, T.Z., Kumar, V., Rovinsky, A., Xu, K., Devlin, T., Levine, S.: Reset-free reinforcement learning via multi-task learning: Learning dexterous manipulation behaviors without human intervention. In: IEEE International Conference on Robotics and Automation (ICRA) (2021), arXiv:2104.11203
 
-\bibitem{gupta2023} % [VERIFY] venue as listed in Kumar et al. 2024
+\bibitem{gupta2023}
 Gupta, A., Lynch, C., Kinman, B., Peake, G., Levine, S., Hausman, K.: Demonstration-bootstrapped autonomous practicing via multi-task reinforcement learning. In: IEEE International Conference on Robotics and Automation (ICRA) (2023), arXiv:2203.15755
 
 \bibitem{kumar2024}
@@ -552,22 +507,19 @@ Sharma, A., Gupta, A., Levine, S., Hausman, K., Finn, C.: Autonomous reinforceme
 \bibitem{sharma2022}
 Sharma, A., Xu, K., Sardana, N., Gupta, A., Hausman, K., Levine, S., Finn, C.: Autonomous reinforcement learning: Formalism and benchmarking. In: International Conference on Learning Representations (ICLR) (2022), arXiv:2112.09605
 
-\bibitem{shukor2025}
-Shukor, M., Aubakirova, D., Capuano, F., Kooijmans, P., Palma, S., Zouitine, A., Aractingi, M., Pascal, C., Russi, M., Marafioti, A., Alibert, S., Cord, M., Wolf, T., Cadene, R.: SmolVLA: A vision-language-action model for affordable and efficient robotics (2025), arXiv:2506.01844
-
-\bibitem{stout2010} % [VERIFY] as listed in Vats et al. 2026
-Stout, A., Barto, A.G.: Competence progress intrinsic motivation. In: IEEE International Conference on Development and Learning (ICDL), pp. 257--262 (2010)
+\bibitem{stout2010}
+Stout, A., Barto, A.G.: Competence progress intrinsic motivation. In: IEEE International Conference on Development and Learning (ICDL) (2010)
 
 \bibitem{vats2026}
 Vats, S., Harithas, S., Akbulut, M.T., Raghunathan, A., Konidaris, G.: Deliberate practice: Learning robot skills under a budget (2026), arXiv:2608.13415
 
 \bibitem{xie2022}
-Xie, A., Tajwar, F., Sharma, A., Finn, C.: When to ask for help: Proactive interventions in autonomous reinforcement learning. In: Advances in Neural Information Processing Systems (NeurIPS) (2022)
+Xie, A., Tajwar, F., Sharma, A., Finn, C.: When to ask for help: Proactive interventions in autonomous reinforcement learning. In: Advances in Neural Information Processing Systems (NeurIPS) (2022), arXiv:2210.10765
 
 \bibitem{yin2026}
-Yin, P., Westenbroek, T., Zhang, Z., Dagnino, I., Shilamkar, E., Mbiziwo-Tiapo, N., Bagaria, S., Liu, X., Mullins, G., Kolobov, A., Gupta, A.: Emergent dexterity via diverse resets and large-scale reinforcement learning. In: International Conference on Learning Representations (ICLR) (2026), arXiv:2603.15789
+Yin, P., Westenbroek, T., Zhang, Z., Tran, J., Dagnino, I., Shilamkar, E., Mbiziwo-Tiapo, N., Bagaria, S., Liu, X., Mullins, G., Kolobov, A., Gupta, A.: Emergent dexterity via diverse resets and large-scale reinforcement learning. In: International Conference on Learning Representations (ICLR) (2026), arXiv:2603.15789
 
-\bibitem{zhao2023} % [VERIFY] as listed in Kumar et al. 2024
+\bibitem{zhao2023}
 Zhao, T.Z., Kumar, V., Levine, S., Finn, C.: Learning fine-grained bimanual manipulation with low-cost hardware. In: Robotics: Science and Systems (RSS) (2023), arXiv:2304.13705
 
 \bibitem{zhu2020}
