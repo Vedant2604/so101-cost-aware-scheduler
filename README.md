@@ -20,7 +20,7 @@ Watch for the failure — and the moment a human has to step in.*
 
 ---
 
-> ### The one-line version
+> 
 >
 > Every robot-learning paper that lets a robot practise on its own counts attempts as if they were free.
 > **They are not.** We built the cheapest possible arm that can practise unattended, priced every single
@@ -31,7 +31,7 @@ Watch for the failure — and the moment a human has to step in.*
 
 <div align="center">
 
-**[Watch a run](#watch)** · **[The setup](#setup)** · **[The loop](#loop)** · **[Results](#results)** · **[Try it](#try)** · **[Roadmap](#roadmap)** · **[Cite](#cite)**
+**[ Watch a run ](#watch)** · **[ The setup ](#setup)** · **[ The loop ](#loop)** · **[ Results ](#results)** · **[ Try it ](#try)** · **[ Roadmap ](#roadmap)** · **[ Cite ](#cite)**
 
 </div>
 
