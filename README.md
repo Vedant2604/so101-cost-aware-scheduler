@@ -31,7 +31,7 @@ Watch for the failure — and the moment a human has to step in.*
 
 <div align="center">
 
-**[▶ Watch a run](#watch)** · **[🔧 The setup](#setup)** · **[🔁 The loop](#loop)** · **[📊 Results](#results)** · **[🧪 Try it](#try)** · **[🗺️ Roadmap](#roadmap)** · **[📄 Cite](#cite)**
+**[Watch a run](#watch)** · **[The setup](#setup)** · **[The loop](#loop)** · **[Results](#results)** · **[Try it](#try)** · **[Roadmap](#roadmap)** · **[Cite](#cite)**
 
 </div>
 
@@ -55,7 +55,7 @@ Watch for the failure — and the moment a human has to step in.*
 
 ---
 
-## 💸 Why this exists
+## Why this exists
 
 Every attempt a robot makes on its own spends three things:
 
@@ -71,7 +71,7 @@ Schedulers that pick *what to practise next* count attempts, so an 18-second suc
 
 <a id="setup"></a>
 
-## 🔧 The setup
+## The setup
 
 <div align="center">
 
@@ -105,7 +105,7 @@ Two learned policies take turns, and each one undoes the other's work, so the lo
 
 <a id="loop"></a>
 
-## 🔁 How the loop works
+## How the loop works
 
 <div align="center">
 
@@ -123,7 +123,7 @@ Two learned policies take turns, and each one undoes the other's work, so the lo
 The dashed arrow is the point of the project: today's scheduler writes the cost down but never reads it. The next one decides with it.
 
 <details>
-<summary><b>🔍 Three detector bugs that only showed up on the real robot</b></summary><br>
+<summary><b> Three detector bugs that only showed up on the real robot</b></summary><br>
 
 | Problem | What went wrong | Fix |
 |---|---|---|
@@ -137,7 +137,7 @@ The dashed arrow is the point of the project: today's scheduler writes the cost 
 
 <a id="results"></a>
 
-## 📊 What we found
+## What we found
 
 We compared two simple rules on the same arm for **51 minutes of robot time**. The session clock paused whenever a person was helping, so neither rule could buy time by asking.
 
@@ -200,7 +200,7 @@ A cost-aware rule recovers the sensible choice **without a hand-set limit**. It 
 </details>
 
 <details>
-<summary><b>⚖️ The honest fine print</b></summary><br>
+<summary><b> The honest fine print</b></summary><br>
 
 - **Small experiment:** 3 sessions of A against 2 of B. Pooled over attempts: Fisher *p* = 0.21. Per-session failure time: Mann–Whitney *p* = 0.40.
 - **The wrist link was re-seated** after the first two sessions. B was lower than A both before (71% vs 81%) and after (60% vs 75% and 80%).
@@ -212,7 +212,7 @@ A cost-aware rule recovers the sensible choice **without a hand-set limit**. It 
 
 ---
 
-## 🧠 Lessons learned the hard way
+## Lessons learned the hard way
 
 | | Lesson | What actually happened |
 |:---:|---|---|
@@ -228,7 +228,7 @@ More, including the dead ends (a simulation phase that never converged, a multi-
 
 <a id="roadmap"></a>
 
-## 🗺️ Where this is going
+## Where this is going
 
 - [x] A low-cost arm that practises two tasks unattended
 - [x] A cost ledger for every attempt: time, joint travel, human help
@@ -243,7 +243,7 @@ More, including the dead ends (a simulation phase that never converged, a multi-
 
 <a id="try"></a>
 
-## 🧪 Try it yourself
+## Try it yourself
 
 ```bash
 git clone https://github.com/Vedant2604/so101-cost-aware-scheduler
@@ -294,7 +294,7 @@ python analyze_offline.py   # failure dependence, human time by cause, the offli
 ```
 
 <details>
-<summary><b>📁 What's in this repo</b></summary><br>
+<summary><b> What's in this repo</b></summary><br>
 
 | Path | What it is |
 |---|---|
