@@ -2,7 +2,7 @@
 
 # Practice is not free 🤖
 
-### A robot arm we printed ourselves, practising on its own — and keeping a receipt for every attempt.
+### A robot arm we printed ourselves, practising on its own and keeping a receipt for every attempt.
 
 [![Paper](https://img.shields.io/badge/paper-LaTeX%20source-b31b1b?style=flat-square)](paper/)
 [![Models](https://img.shields.io/badge/🤗%20models-2-yellow?style=flat-square)](https://huggingface.co/Ved4nt)
@@ -14,7 +14,7 @@
 ![The autonomous loop](media/loop.gif)
 
 *Unattended and sped up: place, go home, look, retrieve, repeat.<br>
-Watch for the failure — and the moment a human has to step in.*
+Watch for the failure and the moment a human has to step in.*
 
 </div>
 
@@ -24,7 +24,7 @@ Watch for the failure — and the moment a human has to step in.*
 >
 > Every robot-learning paper that lets a robot practise on its own counts attempts as if they were free.
 > **They are not.** We built the cheapest possible arm that can practise unattended, priced every single
-> attempt in seconds, servo travel and human patience — and found that the obvious fix,
+> attempt in seconds, servo travel and human patience and found that the obvious fix,
 > *"ask a human after two failures"*, makes things **worse**.
 
 ---
