@@ -289,7 +289,7 @@ python analyze_offline.py   # failure dependence, human time by cause, the offli
   title  = {Practice Is Not Free: Measuring the Embodied Cost of Reset-Free Robot Practice},
   author = {Telrandhe, Vedant and Sharma, Sushil},
   year   = {2026},
-  note   = {Preprint. Code and logs: https://github.com/Vedant2604/so101-cost-aware-scheduler}
+  note   = {https://arxiv.org/abs/2611.19979 Code and logs: https://github.com/Vedant2604/so101-cost-aware-scheduler}
 }
 ```
 
